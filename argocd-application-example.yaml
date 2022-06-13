@@ -4,12 +4,16 @@ metadata:
   name: argocd-application-example
 spec:
   destination:
-    name: in-cluster
+    name: ''
     namespace: demo
-  project: example
+    server: 'https://kubernetes.default.svc'
   source:
-    path: https://github.com/vndereye/ArgoCD.git #<your-git-path>
-    repoURL: https://github.com/vndereye/ArgoCD #<your-public-git-repo>
+    path: . #<your-git-path>
+    plugin:
+      name: argocd-vault-plugin
+    repoURL: https://github.com/vndereye/ArgoCD.git #<your-public-git-repo>
+    tagetRevision: main
+  project: default
   syncPolicy:
     automated:
       selfHeal: true
