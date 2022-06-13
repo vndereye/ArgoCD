@@ -1,0 +1,15 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd-application-example
+spec:
+  destination:
+    name: in-cluster
+    namespace: demo
+  project: example
+  source:
+    path: https://github.com/vndereye/ArgoCD.git #<your-git-path>
+    repoURL: https://github.com/vndereye/ArgoCD #<your-public-git-repo>
+  syncPolicy:
+    automated:
+      selfHeal: true
