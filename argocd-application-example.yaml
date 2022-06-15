@@ -1,19 +1,32 @@
-apiVersion: argoproj.io/v1alpha1
-kind: Application
+# app.yaml
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: argocd-application-example
+  name: app
+  labels:
+    app: vault-agent-demo
 spec:
-  destination:
-    name: ''
-    namespace: demo
-    server: 'https://kubernetes.default.svc'
-  source:
-    path: . #<your-git-path>
-    plugin:
-      name: argocd-vault-plugin
-    repoURL: https://github.com/vndereye/ArgoCD.git #<your-public-git-repo>
-    tagetRevision: main
-  project: default
-  syncPolicy:
-    automated:
-      selfHeal: true
+  selector:
+    matchLabels:
+      app: vault-agent-demo
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/agent-inject-secret-helloworld: "secret/helloworld"
+        vault.hashicorp.com/role: "myapp"
+      labels:
+        app: vault-agent-demo
+    spec:
+      serviceAccountName: app
+      containers:
+      - name: app
+        image: jweissig/app:0.0.1
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: app
+  labels:
+    app: vault-agent-demo
