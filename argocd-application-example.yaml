@@ -2,26 +2,30 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: app
+  name: myapp
   labels:
-    app: vault-agent-demo
+    app: myapp
 spec:
   selector:
     matchLabels:
-      app: vault-agent-demo
+      app: myapp
   replicas: 1
   template:
     metadata:
       annotations:
         vault.hashicorp.com/agent-inject: "true"
-        vault.hashicorp.com/agent-init-first: "true"
-        vault.hashicorp.com/agent-inject-status: "update"
-        vault.hashicorp.com/agent-inject-secret-helloworld: "secret/helloworld"
-        vault.hashicorp.com/role: "myapp"
+        vault.hashicorp.com/tls-skip-verify: "true"
+        vault.hashicorp.com/agent-inject-secret-helloworld: "secret/myapp-secret/helloworld"
+        vault.hashicorp.com/agent-inject-template-helloworld: |
+          {{- with secrte "secret/myapp-secret/hellowrold" -}}
+            "username" : "{{ .Data.username }}",
+            "password" : "{{ .Data.password"}}"
+          {{- end }}
+        vault.hashicorp.com/role: "myapp.role"
       labels:
-        app: vault-agent-demo
+        app: myapp
     spec:
-      serviceAccountName: app
+      serviceAccountName: myapp
       containers:
       - name: app
         image: jweissig/app:0.0.1
@@ -29,6 +33,6 @@ spec:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: app
+  name: myapp
   labels:
-    app: vault-agent-demo
+    app: myapp
