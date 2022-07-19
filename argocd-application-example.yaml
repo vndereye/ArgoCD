@@ -1,38 +1,49 @@
-# app.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: myapp
+  name: app
+  namespace: demo
   labels:
-    app: myapp
+    app: vault-agent-demo
 spec:
   selector:
     matchLabels:
-      app: myapp
+      app: vault-agent-demo
   replicas: 1
   template:
     metadata:
       annotations:
+        # AGENT INJECTOR SETTINGS
         vault.hashicorp.com/agent-inject: "true"
-        vault.hashicorp.com/tls-skip-verify: "true"
-        vault.hashicorp.com/agent-inject-secret-helloworld: "secret/myapp-secret/helloworld"
-        vault.hashicorp.com/agent-inject-template-helloworld: |
-          {{- with secrte "secret/myapp-secret/hellowrold" -}}
-            "username" : "{{ .Data.username }}",
-            "password" : "{{ .Data.password"}}"
-          {{- end }}
-        vault.hashicorp.com/role: "myapp.role"
+        vault.hashicorp.com/agent-inject-status: "update"
+        vault.hashicorp.com/agent-inject-secret-kv-secret: "secret/hashiconf"
+        vault.hashicorp.com/agent-inject-secret-kv-secret: |
+          {{with secret "secret/hashiconf"}}{{ .Data | toJSONPretty }}{{ end }}
+        # VAULT SETTINGS
+        vault.hashicorp.com/role: "app"
+        vault.hashicorp.com/tls-secret: "tls-test-client"
+        vault.hashicorp.com/ca-cert: "/vault/tls/ca.crt"
       labels:
-        app: myapp
+        app: vault-agent-demo
     spec:
-      serviceAccountName: myapp
+      shareProcessNamespace: true
+      serviceAccountName: app
       containers:
       - name: app
-        image: jweissig/app:0.0.1
+        image: jodonnellhashi/static-secrets-app:1.0.0
+        imagePullPolicy: Always
+        securityContext:
+          runAsUser: 100
+          runAsGroup: 1000
+        env:
+        - name: APP_SECRET_PATH
+          value: "/vault/secrets/kv-secret"
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: myapp
+  name: app
+  namespace: demo
   labels:
-    app: myapp
+    app: vault-agent-demo
+
